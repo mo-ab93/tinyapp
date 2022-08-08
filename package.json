@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/mo-ab93/tinyapp/issues"
   },
-  "homepage": "https://github.com/mo-ab93/tinyapp#readme"
+  "homepage": "https://github.com/mo-ab93/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }
