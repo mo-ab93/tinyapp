@@ -32,18 +32,23 @@ app.get('/urls',(req, res) => {
   const templateVars = {urls: urlDatabase};
   res.render('urls_index', templateVars);
 });
-
+//Add new Urls Method//
 app.post('/urls', (req, res) => {
   console.log(req.body);
   urlDatabase[genrateId] = req.body.longURL;
   res.redirect(`/urls/${genrateId}`);
 });
-
+//Delete Urls Method//
 app.post('/urls/:id/delete', (req, res) => {
   let deleteUrl = req.params.id;
   delete urlDatabase[deleteUrl]
   res.redirect("/urls");
-})
+});
+//Update Urls Method//
+app.post('/urls/:id', (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect("/urls");
+});
 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
