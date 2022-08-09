@@ -5,15 +5,16 @@ const PORT = 8080;
 
 app.set('view engine', 'ejs');
 
-function generateRandomString(lengthStr, chars) {
+function generateRandomString() {
   let result = '';
-  for (let i = lengthStr; i > 0; i--) {
+  let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  for (let i = 6; i > 0; i--) {
     result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
 };
 
-generateRandomString(6, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+const genrateId = generateRandomString();
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -34,8 +35,15 @@ app.get('/urls',(req, res) => {
 
 app.post('/urls', (req, res) => {
   console.log(req.body);
-  res.send('ok');
+  urlDatabase[genrateId] = req.body.longURL;
+  res.redirect(`/urls/${genrateId}`);
 });
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
 
 app.get('/urls/new',(req, res) => {
   res.render('urls_new');
