@@ -55,15 +55,14 @@ app.post('/urls/:id', (req, res) => {
   res.redirect("/urls");
 });
 
-//Add username cookie//
+//login cookie//
 app.post('/login', (req, res) => {
-  // console.log(req.body);
   res.cookie('username', req.body.username);
   res.redirect("/urls");
 });
 
+//logout cookie//
 app.post('/logout', (req, res) => {
-  // console.log(req.body);
   res.clearCookie('username');
   res.redirect("/urls");
 });
@@ -72,7 +71,6 @@ app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
-
 
 app.get('/urls/new',(req, res) => {
   const templateVars = { 
