@@ -67,6 +67,11 @@ app.post('/logout', (req, res) => {
   res.redirect("/urls");
 });
 
+// Registration 
+app.get('/register',(req, res) => {
+   res.render('registration');
+});
+
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
