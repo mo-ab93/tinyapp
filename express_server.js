@@ -95,25 +95,28 @@ app.get('/register', (req, res) => {
 
 // Registration POST
 app.post('/register', (req, res) => {
-console.log(req.cookies);
+  // console.log(req.cookies);
+  const email = req.body.email;
+  const password = req.body.password;
 
-const email = req.body.email;
-const password = req.body.password;
-
-if (email === '' || password === '') {
-  return res.status(400).send('Bad Request');
-}
-if (findUserWithEmail(email, users)) {
-  return res.status(400).send('Bad Request');
-}
-
-const genrateId = generateRandomString();
-users[genrateId] = {id: genrateId, email: email, password: password};
-const user = users[genrateId];
-res.cookie('user_id', user.id);
-res.cookie('email', user.email);
+  if (email === '' || password === '') {
+    return res.status(400).send('Bad Request');
+  }
+  if (findUserWithEmail(email, users)) {
+    return res.status(400).send('Bad Request');
+  }
+  const genrateId = generateRandomString();
+  users[genrateId] = {id: genrateId, email: email, password: password};
+  const user = users[genrateId];
+  res.cookie('user_id', user.id);
+  res.cookie('email', user.email);
 
   return res.redirect('/urls');
+});
+
+// Login Get 
+app.get('/login', (req, res) => {
+  res.render('user_login');
 });
 
 app.get("/u/:id", (req, res) => {
