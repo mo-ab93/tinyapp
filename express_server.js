@@ -9,6 +9,9 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                                  Functions part                                  /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const generateRandomString = function() {
   let result = '';
@@ -19,13 +22,25 @@ const generateRandomString = function() {
   return result;
 };
 
-const findUserWithEmail = function(email, users) {
+const findUserWithEmailPssword = function(email, password, users) {
+  for (let key in users) {
+    if (users[key].email === email && users[key].password === password) {
+      return users[key];
+    }
+  }
+ };
+
+ const findUserWithEmail = function(email, users) {
   for (let key in users) {
     if (users[key].email === email) {
       return users[key];
     }
   }
  };
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //////////////////////                                  Databases part                                   /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -45,15 +60,51 @@ const users = {
   },
 };
 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //////////////////////                                  Routres part                                   /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get('/',(req, res) => {
   res.send('Hello World!');
 });
 
 app.get('/urls',(req, res) => {
-  const templateVars = {urls: urlDatabase, email: req.cookies["email"]};
+  const templateVars = {urls: urlDatabase, email: users[req.cookies["user_id"]]?.email};
   res.render('urls_index', templateVars);
 });
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
+app.get('/urls/new',(req, res) => {
+  const templateVars = {
+    email: users[req.cookies["user_id"]]?.email
+  };
+  res.render('urls_new', templateVars);
+});
+
+app.get('/urls/:id',(req, res) => {
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    email: users[req.cookies["user_id"]]?.email
+  };
+  res.render('urls_show', templateVars);
+});
+
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.get('/hello', (req, res) => {
+  res.send('<html><body>Hello <b>World</b></body></html>\n');
+});
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                            Urls Method part                                       /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Add new Urls Method//
 app.post('/urls', (req, res) => {
@@ -76,17 +127,39 @@ app.post('/urls/:id', (req, res) => {
   res.redirect("/urls");
 });
 
-//login cookie//
-app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect("/urls");
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                            Login and log out part                                 /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Login Get 
+app.get('/login', (req, res) => {
+  res.render('user_login');
 });
 
-//logout cookie//
-app.post('/logout', (req, res) => {
-  res.clearCookie('username');
-  res.redirect("/urls");
+//login Post cookie//
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const userObject = findUserWithEmailPssword(email, password, users);
+
+  if (!findUserWithEmailPssword(email, password,  users)) {
+    return res.status(403).send('Forbidden');
+  } 
+  console.log(userObject.id);
+  res.cookie('user_id', userObject.id);
+    
+  return res.redirect('/urls');
 });
+
+//logout Post cookie//
+app.post('/logout', (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect("/login");
+});
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                            Registration part                                      /////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Registration GET
 app.get('/register', (req, res) => {
@@ -114,39 +187,6 @@ app.post('/register', (req, res) => {
   return res.redirect('/urls');
 });
 
-// Login Get 
-app.get('/login', (req, res) => {
-  res.render('user_login');
-});
-
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
-});
-
-app.get('/urls/new',(req, res) => {
-  const templateVars = {
-    email: req.cookies["email"]
-  };
-  res.render('urls_new', templateVars);
-});
-
-app.get('/urls/:id',(req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    email: req.cookies["email"]
-  };
-  res.render('urls_show', templateVars);
-});
-
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
-});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
