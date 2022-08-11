@@ -1,9 +1,9 @@
 const express = require('express');
 // const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const { render } = require('ejs');
 const bcrypt = require("bcryptjs");
-var salt = bcrypt.genSaltSync(10);
+const salt = bcrypt.genSaltSync(10);
 const app = express();
 const PORT = 8080;
 const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
@@ -191,7 +191,7 @@ app.post('/urls/:id', (req, res) => {
 //////////////////////                            Login and log out part                                 /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Login Get 
+// Login Get
 app.get('/login', (req, res) => {
   const user = users[req.session.user_id];
   if (user) {
@@ -199,7 +199,7 @@ app.get('/login', (req, res) => {
   }
   const templateVars = {
     user: null
-  }
+  };
   return res.render('user_login', templateVars);
 });
 
@@ -217,12 +217,12 @@ app.post('/login', (req, res) => {
     return res.status(401).send('Invaild credentials');
   }
 
-  req.session.user_id = userObject.id
+  req.session.user_id = userObject.id;
 
   return res.redirect('/urls');
 });
 
-//logout Post 
+//logout Post
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect("/login");
@@ -241,7 +241,7 @@ app.get('/register', (req, res) => {
   }
   const templateVars = {
     user: null
-  }
+  };
   return res.render('registration', templateVars);
 
 });
@@ -260,7 +260,7 @@ app.post('/register', (req, res) => {
   users[genrateId] = { id: genrateId, email: email, password: bcrypt.hashSync(password, salt) };
   const user = users[genrateId];
 
-  req.session.user_id = user.id
+  req.session.user_id = user.id;
 
   return res.redirect('/urls');
 });
