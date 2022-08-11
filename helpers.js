@@ -4,6 +4,7 @@ const getUserByEmail = function (email, users) {
       return users[key];
     }
   }
+   return undefined;
 };
 
 
