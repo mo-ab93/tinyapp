@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 var salt = bcrypt.genSaltSync(10);
 const app = express();
 const PORT = 8080;
-const {getUserByEmail} = require('./helpers');
+const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
 
 
 app.set('view engine', 'ejs');
@@ -19,33 +19,8 @@ app.use(cookieSession({
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////                                  Functions part                                  /////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const generateRandomString = function () {
-  let result = '';
-  let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  for (let i = 6; i > 0; i--) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
-};
-
-
-const urlsForUser = function (id) {
-  let userUrls = {};
-
-  for (let key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      userUrls[key] = urlDatabase[key];
-    }
-  }
-
-  return userUrls;
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                                  Databases part                                   /////////////////////
@@ -80,6 +55,8 @@ const users = {
     password: bcrypt.hashSync("dishwasher-funk", salt),
   },
 };
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                                  Routres part                                   /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,7 +68,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
 
   const userId = req.session.user_id;
-  const userUrls = urlsForUser(userId);
+  const userUrls = urlsForUser(userId, urlDatabase);
   let templateVars = { urls: userUrls, user: users[userId] };
   return res.render('urls_index', templateVars);
 
@@ -159,7 +136,6 @@ app.get('/hello', (req, res) => {
 
 //Add new Urls Method//
 app.post('/urls', (req, res) => {
-  console.log(req.body);
   const user = users[req.session.user_id];
   if (!user) {
     return res.status(401).send('the user must login');
@@ -169,13 +145,12 @@ app.post('/urls', (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id
   };
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortUrl}`);
 });
 
 //Delete Urls Method//
 app.post('/urls/:id/delete', (req, res) => {
-  
+
   const user = users[req.session.user_id];
   if (!user) {
     return res.redirect("/login");
@@ -231,9 +206,9 @@ app.get('/login', (req, res) => {
   return res.render('user_login', templateVars);
 });
 
-//login Post cookie//
+//login Post
 app.post('/login', (req, res) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
 
   const userObject = getUserByEmail(email, users);
   if (!userObject) {
@@ -244,13 +219,13 @@ app.post('/login', (req, res) => {
   if (!passwordMatch) {
     return res.status(401).send('Invaild credentials');
   }
-  
+
   req.session.user_id = userObject.id
 
   return res.redirect('/urls');
 });
 
-//logout Post cookie//
+//logout Post 
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect("/login");
@@ -264,8 +239,6 @@ app.post('/logout', (req, res) => {
 app.get('/register', (req, res) => {
 
   const user = users[req.session.user_id];
-  console.log(req.session.user_id);
-  console.log(user);
   if (user) {
     return res.redirect("/urls");
   }
@@ -278,8 +251,8 @@ app.get('/register', (req, res) => {
 
 // Registration POST
 app.post('/register', (req, res) => {
-  const {email, password} = req.body;
- 
+  const { email, password } = req.body;
+
   if (email === '' || password === '') {
     return res.status(400).send('Bad Request');
   }
