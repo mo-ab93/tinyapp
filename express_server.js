@@ -1,5 +1,4 @@
 const express = require('express');
-// const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const { render } = require('ejs');
 const bcrypt = require("bcryptjs");
@@ -10,7 +9,6 @@ const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers
 
 
 app.set('view engine', 'ejs');
-// app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieSession({
