@@ -12,11 +12,11 @@
       </div>
     </div>
 
-    <% if(email){ %>
+    <% if(user){ %>
       <form class="form-inline d-flex justify-content-center" action="/logout" method="POST">
         <div class="form-group mb-2">
           <label class="mx-4 text-light">
-            Logged in as: <%= email %>
+            Logged in as: <%= user.email %>
           </label>
           <button type="submit" class="btn btn-outline-danger">Log out</button>
         </div>
