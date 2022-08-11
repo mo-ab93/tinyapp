@@ -22,13 +22,6 @@ const generateRandomString = function () {
   return result;
 };
 
-const findUserWithEmailPssword = function (email, password, users) {
-  for (let key in users) {
-    if (users[key].email === email && users[key].password === password) {
-      return users[key];
-    }
-  }
-};
 
 const findUserWithEmail = function (email, users) {
   for (let key in users) {
@@ -38,23 +31,51 @@ const findUserWithEmail = function (email, users) {
   }
 };
 
+const urlsForUser = function (id) {
+  let userUrls = {};
+
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === id) {
+      userUrls[key] = urlDatabase[key];
+    }
+  }
+
+  return userUrls;
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                                  Databases part                                   /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+  i3Bowr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ43fW",
+  }
 };
 
+
+
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur",
   },
-  user2RandomID: {
-    id: "user2RandomID",
+  aJ43fW: {
+    id: "aJ43fW",
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
@@ -69,35 +90,54 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, email: users[req.cookies["user_id"]]?.email };
-  res.render('urls_index', templateVars);
+  // const templateVars = { urls: urlDatabase, email: users[req.cookies["user_id"]]?.email };
+  const userId = req.cookies['user_id'];
+  const userUrls = urlsForUser(userId);
+  let templateVars = { urls: userUrls, user: users[userId] };
+  return res.render('urls_index', templateVars);
+
 });
 
 app.get("/u/:id", (req, res) => {
-  
-  const longURL = urlDatabase[req.params.id];
+
+  const longURL = urlDatabase[req.params.id].longURL;
   if (!longURL) {
-    res.send('<html><body>Can not find this short URL in <b>database</b></body></html>\n');
+    return res.status(401).send('Can not find this short URL in database');
   }
   res.redirect(longURL);
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = {
-    email: users[req.cookies["user_id"]]?.email
-  };
-  const user = users[req.cookies.user_id];
+  const user = users[req.cookies["user_id"]];
   if (!user) {
     return res.redirect("/login");
   }
+  const templateVars = {
+    user
+  };
   return res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:id', (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.redirect("/login");
+  }
+
+  const urlObject = urlDatabase[req.params.id];
+  if (!urlObject) {
+    return res.status(404).send('URL not found');
+  }
+
+  const urlBelongsToUser = urlObject.userID === user.id;
+  if (!urlBelongsToUser) {
+    return res.status(401).send('You are not the owner!!');
+  }
+
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    email: users[req.cookies["user_id"]]?.email
+    longURL: urlObject.longURL,
+    user: user
   };
   res.render('urls_show', templateVars);
 });
@@ -117,25 +157,57 @@ app.get('/hello', (req, res) => {
 //Add new Urls Method//
 app.post('/urls', (req, res) => {
   console.log(req.body);
-  const user = users[req.cookies.user_id];
+  const user = users[req.cookies["user_id"]];
   if (!user) {
-    return res.send('<html><body>The user should <b>login</b></body></html>\n');
+    return res.status(401).send('the user must login');
   }
-  const genrateId = generateRandomString();
-  urlDatabase[genrateId] = req.body.longURL;
-  res.redirect(`/urls/${genrateId}`);
+  const shortUrl = generateRandomString();
+  urlDatabase[shortUrl] = {
+    longURL: req.body.longURL,
+    userID: req.cookies['user_id']
+  };
+  console.log(urlDatabase);
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 //Delete Urls Method//
 app.post('/urls/:id/delete', (req, res) => {
-  let deleteUrl = req.params.id;
-  delete urlDatabase[deleteUrl];
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.redirect("/login");
+  }
+
+  const urlObject = urlDatabase[req.params.id];
+  if (!urlObject) {
+    return res.status(404).send('URL not found');
+  }
+
+  const urlBelongsToUser = urlObject.userID === user.id;
+  if (!urlBelongsToUser) {
+    return res.status(401).send('You are not the owner!!');
+  }
+
+  delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
 //Update Urls Method//
 app.post('/urls/:id', (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.redirect("/login");
+  }
+
+  const urlObject = urlDatabase[req.params.id];
+  if (!urlObject) {
+    return res.status(404).send('URL not found');
+  }
+
+  const urlBelongsToUser = urlObject.userID === user.id;
+  if (!urlBelongsToUser) {
+    return res.status(401).send('You are not the owner!!');
+  }
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -145,21 +217,29 @@ app.post('/urls/:id', (req, res) => {
 
 // Login Get 
 app.get('/login', (req, res) => {
-  const user = users[req.cookies.user_id];
+
+  const user = users[req.cookies["user_id"]];
   if (user) {
     return res.redirect("/urls");
   }
-  return res.render('user_login');
+  const templateVars = {
+    user: null
+  }
+  return res.render('user_login', templateVars);
 });
 
 //login Post cookie//
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const userObject = findUserWithEmailPssword(email, password, users);
-
-  if (!findUserWithEmailPssword(email, password, users)) {
-    return res.status(403).send('Forbidden');
+  // const userObject = findUserWithEmailPssword(email, password, users);
+  const userObject = findUserWithEmail(email, users);
+  if (!userObject) {
+    return res.status(401).send('Invaild credentials');
+  }
+  const passwordMatch = userObject.password === password;
+  if (!passwordMatch) {
+    return res.status(401).send('Invaild credentials');
   }
   console.log(userObject.id);
   res.cookie('user_id', userObject.id);
@@ -180,11 +260,14 @@ app.post('/logout', (req, res) => {
 // Registration GET
 app.get('/register', (req, res) => {
 
-  const user = users[req.cookies.user_id];
+  const user = users[req.cookies["user_id"]];
   if (user) {
     return res.redirect("/urls");
   }
-  return res.render('registration');
+  const templateVars = {
+    user: null
+  }
+  return res.render('registration', templateVars);
 
 });
 
@@ -204,7 +287,6 @@ app.post('/register', (req, res) => {
   users[genrateId] = { id: genrateId, email: email, password: password };
   const user = users[genrateId];
   res.cookie('user_id', user.id);
-  res.cookie('email', user.email);
 
   return res.redirect('/urls');
 });
