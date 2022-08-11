@@ -74,7 +74,11 @@ app.get('/urls', (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
+  
   const longURL = urlDatabase[req.params.id];
+  if (!longURL) {
+    res.send('<html><body>Can not find this short URL in <b>database</b></body></html>\n');
+  }
   res.redirect(longURL);
 });
 
@@ -82,7 +86,11 @@ app.get('/urls/new', (req, res) => {
   const templateVars = {
     email: users[req.cookies["user_id"]]?.email
   };
-  res.render('urls_new', templateVars);
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    return res.redirect("/login");
+  }
+  return res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:id', (req, res) => {
@@ -109,6 +117,10 @@ app.get('/hello', (req, res) => {
 //Add new Urls Method//
 app.post('/urls', (req, res) => {
   console.log(req.body);
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    return res.send('<html><body>The user should <b>login</b></body></html>\n');
+  }
   const genrateId = generateRandomString();
   urlDatabase[genrateId] = req.body.longURL;
   res.redirect(`/urls/${genrateId}`);
