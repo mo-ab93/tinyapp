@@ -15,22 +15,22 @@
     <% if(email){ %>
       <form class="form-inline d-flex justify-content-center" action="/logout" method="POST">
         <div class="form-group mb-2">
-          <label class="mx-4 text-primary">
-            <%= email %>
+          <label class="mx-4 text-light">
+            Logged in as: <%= email %>
           </label>
-          <button type="submit" class="btn btn-outline-light">Log out</button>
+          <button type="submit" class="btn btn-outline-danger">Log out</button>
         </div>
       </form>
     
       <% } else{ %>
-        <form class="form-inline d-flex justify-content-center" action="/register" method="GET">
+        <form class="form-inline d-flex justify-content-center" action="/login" method="GET">
           <div class="form-group mr-2">
-            <button type="submit" class="btn btn-outline-light">Register</button>
+            <button type="submit" class="btn btn-outline-info">Login</button>
           </div>
         </form>
-        <form class="form-inline d-flex justify-content-center" action="/login" method="GET">
+        <form class="form-inline d-flex justify-content-center" action="/register" method="GET">
           <div class="form-group">
-            <button type="submit" class="btn btn-outline-light">login</button>
+            <button type="submit" class="btn btn-outline-light">Register</button>
           </div>
         </form>
         <% } %>
