@@ -1,13 +1,13 @@
-const getUserByEmail = function (email, users) {
+const getUserByEmail = function(email, users) {
   for (let key in users) {
     if (users[key].email === email) {
       return users[key];
     }
   }
-   return undefined;
+  return undefined;
 };
 
-const generateRandomString = function () {
+const generateRandomString = function() {
   let result = '';
   let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let i = 6; i > 0; i--) {
@@ -17,7 +17,7 @@ const generateRandomString = function () {
 };
 
 
-const urlsForUser = function (id, urlDatabase) {
+const urlsForUser = function(id, urlDatabase) {
   let userUrls = {};
 
   for (let key in urlDatabase) {
@@ -32,4 +32,4 @@ const urlsForUser = function (id, urlDatabase) {
 
 
 
-module.exports = {getUserByEmail, generateRandomString, urlsForUser}
+module.exports = { getUserByEmail, generateRandomString, urlsForUser };
