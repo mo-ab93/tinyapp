@@ -1,6 +1,8 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const { render } = require('ejs');
+const bcrypt = require("bcryptjs");
+var salt = bcrypt.genSaltSync(10);
 const app = express();
 const PORT = 8080;
 
@@ -80,7 +82,9 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-
+// const password = "purple-monkey-dinosaur"; // found in the req.body object
+// const hashedPassword = bcrypt.hashSync(password, 10);
+// console.log(users, hashedPassword);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                                  Routres part                                   /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,6 +148,9 @@ app.get('/urls/:id', (req, res) => {
 
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
+});
+app.get('/urls.json2', (req, res) => {
+  res.json(users);
 });
 
 app.get('/hello', (req, res) => {
@@ -232,12 +239,15 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+
   // const userObject = findUserWithEmailPssword(email, password, users);
   const userObject = findUserWithEmail(email, users);
   if (!userObject) {
     return res.status(401).send('Invaild credentials');
   }
-  const passwordMatch = userObject.password === password;
+  const password1 = userObject.password; // found in the req.body object
+  const hashedPassword = bcrypt.hashSync(password1, salt);
+  const passwordMatch = bcrypt.compareSync(password, hashedPassword);
   if (!passwordMatch) {
     return res.status(401).send('Invaild credentials');
   }
@@ -284,8 +294,9 @@ app.post('/register', (req, res) => {
     return res.status(400).send('Bad Request');
   }
   const genrateId = generateRandomString();
-  users[genrateId] = { id: genrateId, email: email, password: password };
+  users[genrateId] = { id: genrateId, email: email, password: bcrypt.hashSync(password, salt)};
   const user = users[genrateId];
+  console.log(user);
   res.cookie('user_id', user.id);
 
   return res.redirect('/urls');
