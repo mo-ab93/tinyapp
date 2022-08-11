@@ -34,7 +34,7 @@ const generateRandomString = function () {
 };
 
 
-const findUserWithEmail = function (email, users) {
+const getUserByEmail = function (email, users) {
   for (let key in users) {
     if (users[key].email === email) {
       return users[key];
@@ -243,7 +243,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
 
-  const userObject = findUserWithEmail(email, users);
+  const userObject = getUserByEmail(email, users);
   if (!userObject) {
     return res.status(401).send('Invaild credentials');
   }
@@ -291,7 +291,7 @@ app.post('/register', (req, res) => {
   if (email === '' || password === '') {
     return res.status(400).send('Bad Request');
   }
-  if (findUserWithEmail(email, users)) {
+  if (getUserByEmail(email, users)) {
     return res.status(400).send('Bad Request');
   }
   const genrateId = generateRandomString();
