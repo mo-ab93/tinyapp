@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 var salt = bcrypt.genSaltSync(10);
 const app = express();
 const PORT = 8080;
+const {getUserByEmail} = require('./helpers');
 
 
 app.set('view engine', 'ejs');
@@ -33,14 +34,6 @@ const generateRandomString = function () {
   return result;
 };
 
-
-const getUserByEmail = function (email, users) {
-  for (let key in users) {
-    if (users[key].email === email) {
-      return users[key];
-    }
-  }
-};
 
 const urlsForUser = function (id) {
   let userUrls = {};
@@ -73,7 +66,6 @@ const urlDatabase = {
     userID: "aJ43fW",
   }
 };
-
 
 
 const users = {
