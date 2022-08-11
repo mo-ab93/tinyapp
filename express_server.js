@@ -122,9 +122,6 @@ app.get('/urls/:id', (req, res) => {
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
-app.get('/urls.json2', (req, res) => {
-  res.json(users);
-});
 
 app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
