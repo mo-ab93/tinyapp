@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 //////////////////////                                  Functions part                                  /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const generateRandomString = function() {
+const generateRandomString = function () {
   let result = '';
   let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let i = 6; i > 0; i--) {
@@ -22,24 +22,24 @@ const generateRandomString = function() {
   return result;
 };
 
-const findUserWithEmailPssword = function(email, password, users) {
+const findUserWithEmailPssword = function (email, password, users) {
   for (let key in users) {
     if (users[key].email === email && users[key].password === password) {
       return users[key];
     }
   }
- };
+};
 
- const findUserWithEmail = function(email, users) {
+const findUserWithEmail = function (email, users) {
   for (let key in users) {
     if (users[key].email === email) {
       return users[key];
     }
   }
- };
+};
 
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- //////////////////////                                  Databases part                                   /////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                                  Databases part                                   /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const urlDatabase = {
@@ -60,16 +60,16 @@ const users = {
   },
 };
 
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- //////////////////////                                  Routres part                                   /////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////                                  Routres part                                   /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.get('/',(req, res) => {
+app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.get('/urls',(req, res) => {
-  const templateVars = {urls: urlDatabase, email: users[req.cookies["user_id"]]?.email};
+app.get('/urls', (req, res) => {
+  const templateVars = { urls: urlDatabase, email: users[req.cookies["user_id"]]?.email };
   res.render('urls_index', templateVars);
 });
 
@@ -78,14 +78,14 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-app.get('/urls/new',(req, res) => {
+app.get('/urls/new', (req, res) => {
   const templateVars = {
     email: users[req.cookies["user_id"]]?.email
   };
   res.render('urls_new', templateVars);
 });
 
-app.get('/urls/:id',(req, res) => {
+app.get('/urls/:id', (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
@@ -102,7 +102,7 @@ app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                            Urls Method part                                       /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -127,13 +127,17 @@ app.post('/urls/:id', (req, res) => {
   res.redirect("/urls");
 });
 
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                            Login and log out part                                 /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Login Get 
 app.get('/login', (req, res) => {
-  res.render('user_login');
+  const user = users[req.cookies.user_id];
+  if (user) {
+    return res.redirect("/urls");
+  }
+  return res.render('user_login');
 });
 
 //login Post cookie//
@@ -142,12 +146,12 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const userObject = findUserWithEmailPssword(email, password, users);
 
-  if (!findUserWithEmailPssword(email, password,  users)) {
+  if (!findUserWithEmailPssword(email, password, users)) {
     return res.status(403).send('Forbidden');
-  } 
+  }
   console.log(userObject.id);
   res.cookie('user_id', userObject.id);
-    
+
   return res.redirect('/urls');
 });
 
@@ -157,13 +161,19 @@ app.post('/logout', (req, res) => {
   res.redirect("/login");
 });
 
- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////                            Registration part                                      /////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Registration GET
 app.get('/register', (req, res) => {
-   res.render('registration');
+
+  const user = users[req.cookies.user_id];
+  if (user) {
+    return res.redirect("/urls");
+  }
+  return res.render('registration');
+
 });
 
 // Registration POST
@@ -179,7 +189,7 @@ app.post('/register', (req, res) => {
     return res.status(400).send('Bad Request');
   }
   const genrateId = generateRandomString();
-  users[genrateId] = {id: genrateId, email: email, password: password};
+  users[genrateId] = { id: genrateId, email: email, password: password };
   const user = users[genrateId];
   res.cookie('user_id', user.id);
   res.cookie('email', user.email);
